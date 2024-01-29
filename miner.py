@@ -35,6 +35,7 @@ class Miner:
                 msg = client_socket.recv(1024).decode('utf-8')
                 logging.debug(f"Miner_{self.port} receive msg : {msg}")
                 t = threading.Thread(target=self.handle_message, args=(msg, client_address, client_socket))
+                logging.debug(f"Miner_{self.port}.start : start thread")
                 t.start()
         except Exception as e:
             sock.close()
@@ -42,28 +43,28 @@ class Miner:
 
     def handle_message(self, msg, client_address, client_socket):
         logging.debug(f"Miner_{self.port}.handle_message")
-        if msg == "Hello, I'm a miner!":
-            logging.debug(f"Miner_{self.port}.handle_message : miner connected from {client_address[0]}:{client_address[1]}")
+        if "Hello, I'm a miner!" in msg:
+            port = msg.split("=")[1]
+            logging.debug(f"Miner_{self.port}.handle_message : miner connected from {client_address[0]}:{port}")
             # on envoie les coordonnées du nouveau miner à tous les autres miners que l'on connait déjà
             for miner in self.miner_list:
-                t = threading.Thread(target=self.send_miner_info, args=(miner[0], int(miner[1]), client_address[0], client_address[1]))
+                adr_miner, port_miner = miner.split(":")
+                t = threading.Thread(target=self.send_miner_info, args=(adr_miner, int(port_miner), client_address[0], port))
                 t.start()
-                # self.send_miner_info(miner[0], int(miner[1]), client_address[0], client_address[1])
-            # on envoie la liste des miners au nouveau miner
-            
-            list_m = ','.join(self.miner_list)
+            # si on n'a pas de miner dans notre liste, on envoie None
             if self.miner_list == []:
                 client_socket.send("None".encode("utf-8"))
             else:
+                # on envoie la liste des miners au nouveau miner
                 client_socket.send((','.join(self.miner_list)).encode("utf-8"))
             # on ajoute le nouveau miner à la liste des miners connus
-            self.miner_list.append(f"{client_address[0]}:{client_address[1]}")
-            
-        elif msg[:10] == "New Miner":
+            self.miner_list.append(f"{client_address[0]}:{port}")
+        
+        
+        elif "New miner" in msg:
             msg_split = msg.split(":")
             logging.debug(f"Miner_{self.port}.handle_message : received adress of Miner {msg_split[1]}:{msg_split[2]} from miner : {client_address[0]}:{client_address[1]}")
             self.miner_list.append(f"{msg_split[1]}:{msg_split[2]}")
-
 
     def connect_to_miner(self, address, port):
         logging.debug(f"Miner_{self.port}.connect_to_miner")
@@ -74,7 +75,7 @@ class Miner:
         sock.connect((address, port))
 
         logging.debug(f"Miner_{self.port}.connect_to_miner : send message")
-        sock.send(b"Hello, I'm a miner!")
+        sock.send(f"Hello, I'm a miner! Port={self.port}".encode("utf-8"))
 
         # on reçoit la liste des miners
         data = sock.recv(1024).decode('utf-8')
@@ -95,10 +96,12 @@ class Miner:
 
 
     def send_miner_info(self, address, port, new_miner_address, new_miner_port):
-        logging.debug(f"Miner_ {self.port}.send_miner_info")
+        logging.debug(f"Miner_{self.port}.send_miner_info")
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        logging.debug(f"Miner_{self.port}.send_miner_info : connect to {address}:{port}")
         sock.connect((address, port))
         message = f"New miner:{new_miner_address}:{new_miner_port}"
+        logging.debug(f"Miner_{self.port}.send_miner_info : send message : {message} to {address}:{port}")
         sock.send(message.encode("utf-8"))
         sock.close()
 
