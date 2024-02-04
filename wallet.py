@@ -38,7 +38,7 @@ class Wallet:
         miner_address, miner_port = self.connected_miner
         
         try:
-            message = f"From Wallet:{self.address}:{self.port}>" + message
+            message = f"From Wallet:{self.address}:{self.port}:" + message
             
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # Connection au miner
