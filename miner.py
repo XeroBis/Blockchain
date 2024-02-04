@@ -38,6 +38,7 @@ class Miner:
                 logging.debug(f"Miner_{self.port}.start : start thread")
                 t.start()
         except Exception as e:
+            logging.debug(e)
             sock.close()
         
 
@@ -65,6 +66,25 @@ class Miner:
             msg_split = msg.split(":")
             logging.debug(f"Miner_{self.port}.handle_message : received adress of Miner {msg_split[1]}:{msg_split[2]} from miner : {client_address[0]}:{client_address[1]}")
             self.miner_list.append(f"{msg_split[1]}:{msg_split[2]}")
+            
+        elif "From Wallet" in msg:
+            head, content = msg.split(">")
+            msg_split = head.split(":")
+            logging.debug(f"Miner_{self.port}.handle_message : received message \"{content}\" from Wallet {msg_split[1]}:{msg_split[2]}")
+            for miner in self.miner_list:
+                adr_miner, port_miner = miner.split(":")
+                self.send_wallet_info(adr_miner, port_miner, "Message from" + ":".join(msg.split(":")[1:]))
+            
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((msg_split[1], int(msg_split[2])))
+            sock.send("Bien reçu".encode("utf-8"))
+            sock.close()
+            
+        elif "Messge from" in msg:
+            msg_split = msg.split(":")
+            logging.debug(f"Miner_{self.port}.handle_message : transfered message \"{content}\" from Wallet {msg_split[1]}:{msg_split[2]} from miner : {client_address[0]}:{client_address[1]}")
+            
+            
 
     def connect_to_miner(self, address, port):
         logging.debug(f"Miner_{self.port}.connect_to_miner")
@@ -102,6 +122,17 @@ class Miner:
         sock.connect((address, port))
         message = f"New miner:{new_miner_address}:{new_miner_port}"
         logging.debug(f"Miner_{self.port}.send_miner_info : send message : {message} to {address}:{port}")
+        sock.send(message.encode("utf-8"))
+        sock.close()
+
+
+    def send_wallet_info(self, address, port, msg):
+        logging.debug(f"Miner_{self.port}.send_wallet_info")
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        logging.debug(f"Miner_{self.port}.send_wallet_info : connect to {address}:{port}")
+        sock.connect((address, int(port)))
+        message = f"Message from:{msg}"
+        logging.debug(f"Miner_{self.port}.send_wallet_info : {message}")
         sock.send(message.encode("utf-8"))
         sock.close()
 
