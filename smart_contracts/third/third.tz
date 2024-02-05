@@ -1,0 +1,27 @@
+parameter (string %modify);
+storage   string;
+code
+  {
+    UNPAIR;     # @parameter : @storage
+    # == modify ==
+    # if self.data.s == '': # @parameter : @storage
+    PUSH string ""; # string : @parameter : @storage
+    DUP 3;      # @storage : string : @parameter : @storage
+    COMPARE;    # int : @parameter : @storage
+    EQ;         # bool : @parameter : @storage
+    IF
+      {
+        SWAP;       # @storage : @parameter
+        # self.data.s += params # @storage : @parameter
+        CONCAT;     # string
+      }
+      {
+        # self.data.s += ', ' + params # @parameter : @storage
+        PUSH string ", "; # string : @parameter : @storage
+        CONCAT;     # string : @storage
+        SWAP;       # @storage : string
+        CONCAT;     # string
+      }; # string
+    NIL operation; # list operation : string
+    PAIR;       # pair (list operation) string
+  };
