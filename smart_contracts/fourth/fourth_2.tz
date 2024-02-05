@@ -1,0 +1,38 @@
+parameter (string %modify);
+storage   (pair (string %chaine) (int %cpt));
+code
+  {
+    UNPAIR;     # @parameter : @storage
+    SWAP;       # @storage : @parameter
+    # == modify ==
+    # with sp.modify_record(self.data.r, "d") as d: # @storage : @parameter
+    UNPAIR;     # string : int : @parameter
+    # if d.chaine == '': # string : int : @parameter
+    PUSH string ""; # string : string : int : @parameter
+    DUP 2;      # string : string : string : int : @parameter
+    COMPARE;    # int : string : int : @parameter
+    EQ;         # bool : string : int : @parameter
+    IF
+      {
+        # d.chaine += params # string : int : @parameter
+        DIG 2;      # @parameter : string : int
+        SWAP;       # string : @parameter : int
+        CONCAT;     # string : int
+      }
+      {
+        # d.chaine += ', ' + params # string : int : @parameter
+        DIG 2;      # @parameter : string : int
+        PUSH string ", "; # string : @parameter : string : int
+        CONCAT;     # string : string : int
+        SWAP;       # string : string : int
+        CONCAT;     # string : int
+      }; # string : int
+    SWAP;       # int : string
+    # d.cpt += 1 # int : string
+    PUSH int 1; # int : int : string
+    ADD;        # int : string
+    SWAP;       # string : int
+    PAIR;       # pair string int
+    NIL operation; # list operation : pair string int
+    PAIR;       # pair (list operation) (pair string int)
+  };
