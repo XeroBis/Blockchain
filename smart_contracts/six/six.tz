@@ -1,0 +1,115 @@
+parameter (or (int %add) (int %sub));
+storage   (pair (option %last_user address) (int %total));
+code
+  {
+    UNPAIR;     # @parameter : @storage
+    IF_LEFT
+      {
+        # == add ==
+        # if self.data.last_user.is_variant('None'): # @parameter%add : @storage
+        DUP 2;      # @storage : @parameter%add : @storage
+        CAR;        # option address : @parameter%add : @storage
+        IF_NONE
+          {
+            SWAP;       # @storage : @parameter%add
+            # self.data.total += params # @storage : @parameter%add
+            DUP;        # @storage : @storage : @parameter%add
+            CDR;        # int : @storage : @parameter%add
+            DIG 2;      # @parameter%add : int : @storage
+            ADD;        # int : @storage
+            UPDATE 2;   # @storage
+            # self.data.last_user = sp.some(sp.sender) # @storage
+            SENDER;     # @sender : @storage
+            SOME;       # option address : @storage
+            UPDATE 1;   # @storage
+          }
+          {
+            DROP;       # @parameter%add : @storage
+            # assert sp.sender != self.data.last_user.open_some(), 'Impossible de faire deux operations de suite' # @parameter%add : @storage
+            DUP 2;      # @storage : @parameter%add : @storage
+            CAR;        # option address : @parameter%add : @storage
+            IF_NONE
+              {
+                PUSH int 16; # int : @parameter%add : @storage
+                FAILWITH;   # FAILED
+              }
+              {}; # @some : @parameter%add : @storage
+            SENDER;     # @sender : @some : @parameter%add : @storage
+            COMPARE;    # int : @parameter%add : @storage
+            NEQ;        # bool : @parameter%add : @storage
+            IF
+              {}
+              {
+                PUSH string "Impossible de faire deux operations de suite"; # string : @parameter%add : @storage
+                FAILWITH;   # FAILED
+              }; # @parameter%add : @storage
+            SWAP;       # @storage : @parameter%add
+            # self.data.total += params # @storage : @parameter%add
+            DUP;        # @storage : @storage : @parameter%add
+            CDR;        # int : @storage : @parameter%add
+            DIG 2;      # @parameter%add : int : @storage
+            ADD;        # int : @storage
+            UPDATE 2;   # @storage
+            # self.data.last_user = sp.some(sp.sender) # @storage
+            SENDER;     # @sender : @storage
+            SOME;       # option address : @storage
+            UPDATE 1;   # @storage
+          }; # @storage
+      }
+      {
+        # == sub ==
+        # if self.data.last_user.is_variant('None'): # @parameter%sub : @storage
+        DUP 2;      # @storage : @parameter%sub : @storage
+        CAR;        # option address : @parameter%sub : @storage
+        IF_NONE
+          {
+            SWAP;       # @storage : @parameter%sub
+            # self.data.total -= params # @storage : @parameter%sub
+            DUP;        # @storage : @storage : @parameter%sub
+            CDR;        # int : @storage : @parameter%sub
+            DIG 2;      # @parameter%sub : int : @storage
+            SWAP;       # int : @parameter%sub : @storage
+            SUB;        # int : @storage
+            UPDATE 2;   # @storage
+            # self.data.last_user = sp.some(sp.sender) # @storage
+            SENDER;     # @sender : @storage
+            SOME;       # option address : @storage
+            UPDATE 1;   # @storage
+          }
+          {
+            DROP;       # @parameter%sub : @storage
+            # assert sp.sender != self.data.last_user.open_some(), 'Impossible de faire deux operations de suite' # @parameter%sub : @storage
+            DUP 2;      # @storage : @parameter%sub : @storage
+            CAR;        # option address : @parameter%sub : @storage
+            IF_NONE
+              {
+                PUSH int 26; # int : @parameter%sub : @storage
+                FAILWITH;   # FAILED
+              }
+              {}; # @some : @parameter%sub : @storage
+            SENDER;     # @sender : @some : @parameter%sub : @storage
+            COMPARE;    # int : @parameter%sub : @storage
+            NEQ;        # bool : @parameter%sub : @storage
+            IF
+              {}
+              {
+                PUSH string "Impossible de faire deux operations de suite"; # string : @parameter%sub : @storage
+                FAILWITH;   # FAILED
+              }; # @parameter%sub : @storage
+            SWAP;       # @storage : @parameter%sub
+            # self.data.total -= params # @storage : @parameter%sub
+            DUP;        # @storage : @storage : @parameter%sub
+            CDR;        # int : @storage : @parameter%sub
+            DIG 2;      # @parameter%sub : int : @storage
+            SWAP;       # int : @parameter%sub : @storage
+            SUB;        # int : @storage
+            UPDATE 2;   # @storage
+            # self.data.last_user = sp.some(sp.sender) # @storage
+            SENDER;     # @sender : @storage
+            SOME;       # option address : @storage
+            UPDATE 1;   # @storage
+          }; # @storage
+      }; # @storage
+    NIL operation; # list operation : @storage
+    PAIR;       # pair (list operation) @storage
+  };
