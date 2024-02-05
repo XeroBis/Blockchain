@@ -10,11 +10,17 @@ def main():
         def inc(self):
             self.data.v += 1
 
+        @sp.entry_point
+        def dec(self):
+            self.data.v -= 1
+
 @sp.add_test(name = "mytest")
 def test():
     scenario = sp.test_scenario(main)
     c = main.Counter()
     scenario += c
     c.inc()
-    c.inc()
+    c.dec()
     
+
+
