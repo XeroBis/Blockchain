@@ -1,1 +1,2 @@
 octez-client run script smart_contracts/fourth/fourth_1.tz  on storage 'Pair "Bonjour" 0' and input '"Hello"'
+octez-client run script smart_contracts/fifth/fifth.tz  on storage 'Pair "tz1eGd1Gzh9cpZjW1hpzre2fLSnMAsXqRdJy" 0' and input '3' --entrypoint 'add'
