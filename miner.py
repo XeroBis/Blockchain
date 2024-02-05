@@ -6,8 +6,7 @@ import sys
 
 class Miner:
     def __init__(self, address, port, address_b=None, port_b=None):
-        logging.basicConfig(
-            filename=f'logs/miner_{port}.log', encoding='utf-8', level=logging.DEBUG, filemode="w")
+        logging.basicConfig(filename=f'logs/miner_{port}.log', encoding='utf-8', level=logging.DEBUG, filemode="w")
         logging.debug(f"Miner_{port}.__init__")
 
         self.address = address
@@ -16,8 +15,7 @@ class Miner:
 
         # si on a les coordonnées d'un autre miner, on se connecte à lui
         if address_b and port_b:
-            logging.debug(
-                f"Miner_{self.port}.__init__ : connect to miner {address_b}:{port_b}")
+            logging.debug(f"Miner_{self.port}.__init__ : connect to miner {address_b}:{port_b}")
             self.miner_list = [f"{address_b}:{port_b}"]
             self.connect_to_miner(address_b, port_b)
         self.start()
@@ -43,6 +41,7 @@ class Miner:
         except Exception as e:
             logging.debug(e)
             sock.close()
+            return
 
     def handle_message(self, msg, client_address, client_socket):
         logging.debug(f"Miner_{self.port}.handle_message")
@@ -125,7 +124,7 @@ class Miner:
 
     def send_miner_info(self, address, port, new_miner_address, new_miner_port):
         """
-        Envoi les coordonnées du nouveau miner à un autre miner (adress port)
+        Envoi les coordonnées du nouveau miner à un autre miner (address port)
         """
         logging.debug(f"Miner_{self.port}.send_miner_info")
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -138,7 +137,7 @@ class Miner:
         sock.send(message.encode("utf-8"))
         sock.close()
 
-
+    # Bug ici
     def send_wallet_info(self, address, port, msg):
         logging.debug(f"Miner_{self.port}.send_wallet_info")
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

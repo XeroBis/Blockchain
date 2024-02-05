@@ -3,17 +3,35 @@ import sys
 import logging
 
 class Wallet:
-    def __init__(self, address, port, miner_port, message):
+    def __init__(self, address, port, miner_port):
         logging.basicConfig(filename=f'logs/wallet_{port}.log', encoding='utf-8', level=logging.DEBUG, filemode="w")
         logging.debug(f"Wallet_{port}.__init__")
         
         self.address = address
         self.port = port
-        self.connected_miner = None
+        self.connected_miner = ("127.0.0.1", int(miner_port))
         
-        self.connect_to_miner("127.0.0.1", miner_port)
-        self.send_message_to_miner(message)
-        self.receive_response()
+        self.start()
+        # self.connect_to_miner("127.0.0.1", miner_port)
+        # self.send_message_to_miner(message)
+        # self.receive_response()
+
+    def start(self):
+        logging.debug(f"Wallet_{self.port}.start")
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind((self.address, self.port))
+        try:
+            while True:
+                message = input("Transaction : ")
+                self.connect_to_miner(self.connected_miner[0], self.connected_miner[1])
+                self.send_message_to_miner(message)
+                self.receive_response()
+        except Exception as e:
+            logging.debug(e)
+            sock.close()
+            return
+
 
     def connect_to_miner(self, miner_address, miner_port):
         # Connection a un miner
@@ -58,7 +76,6 @@ class Wallet:
         logging.debug(f"Wallet_{self.port} waiting for response...")
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind((self.address, self.port))
         sock.listen()
         try:
             while True:
@@ -73,5 +90,5 @@ class Wallet:
 
 if __name__ == "__main__":
     # Code to instantiate and use the wallet
-    wallet = Wallet("127.0.0.1", int(sys.argv[1]), int(sys.argv[2]), sys.argv[3])  # Example port and address
+    wallet = Wallet("127.0.0.1", int(sys.argv[1]), int(sys.argv[2]))  # Example port and address
     # Connect to a miner, send a message, etc.
