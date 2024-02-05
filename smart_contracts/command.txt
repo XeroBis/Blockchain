@@ -1,0 +1,1 @@
+octez-client run script smart_contracts/fourth/fourth_1.tz  on storage 'Pair "Bonjour" 0' and input '"Hello"'

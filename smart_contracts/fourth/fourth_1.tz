@@ -1,0 +1,38 @@
+parameter (string %add);
+storage   (pair string int);
+code
+  {
+    UNPAIR;     # @parameter : @storage
+    # == add ==
+    # if sp.fst(self.data.p) == '': # @parameter : @storage
+    PUSH string ""; # string : @parameter : @storage
+    DUP 3;      # @storage : string : @parameter : @storage
+    CAR;        # string : string : @parameter : @storage
+    COMPARE;    # int : @parameter : @storage
+    EQ;         # bool : @parameter : @storage
+    IF
+      {
+        SWAP;       # @storage : @parameter
+        DROP;       # @parameter
+        # self.data.p = (params, 1) # @parameter
+        PUSH int 1; # int : @parameter
+        SWAP;       # @parameter : int
+        PAIR;       # pair @parameter int
+      }
+      {
+        # self.data.p = ((sp.fst(self.data.p) + ', ') + params, sp.snd(self.data.p) + 1) # @parameter : @storage
+        PUSH int 1; # int : @parameter : @storage
+        DUP 3;      # @storage : int : @parameter : @storage
+        CDR;        # int : int : @parameter : @storage
+        ADD;        # int : @parameter : @storage
+        SWAP;       # @parameter : int : @storage
+        PUSH string ", "; # string : @parameter : int : @storage
+        DIG 3;      # @storage : string : @parameter : int
+        CAR;        # string : string : @parameter : int
+        CONCAT;     # string : @parameter : int
+        CONCAT;     # string : int
+        PAIR;       # pair string int
+      }; # pair string int
+    NIL operation; # list operation : pair string int
+    PAIR;       # pair (list operation) (pair string int)
+  };
