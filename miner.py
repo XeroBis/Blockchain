@@ -84,9 +84,7 @@ class Miner:
             
         elif "Message from" in msg:
             msg_split = msg.split(":")
-            logging.debug(f"Miner_{self.port}.handle_message : transfered message \"{msg_split[-1]}\" from Wallet {msg_split[1]}:{msg_split[2]} from miner : {client_address[0]}:{client_address[1]}")
-            
-            
+            logging.debug(f"Miner_{self.port}.handle_message : transfered message \"{msg_split[-1]}\" from Wallet {msg_split[1]}:{msg_split[2]} from miner : {client_address[0]}:{client_address[1]}")      
 
     def connect_to_miner(self, address, port):
         """
@@ -151,7 +149,6 @@ class Miner:
 
 if __name__ == "__main__":
     if len(sys.argv) > 2:
-        miner = Miner("127.0.0.1", int(
-            sys.argv[1]), "127.0.0.1", int(sys.argv[2]))
+        miner = Miner("127.0.0.1", int(sys.argv[1]), "127.0.0.1", int(sys.argv[2]))
     else:
         miner = Miner("127.0.0.1", int(sys.argv[1]))
