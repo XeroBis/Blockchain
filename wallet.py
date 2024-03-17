@@ -1,6 +1,8 @@
 import socket
 import sys
 import logging
+import threading
+
 
 class Wallet:
     def __init__(self, address, port, miner_port):
@@ -23,70 +25,32 @@ class Wallet:
         sock.bind((self.address, self.port))
         try:
             while True:
-                message = input("Transaction : ")
-                self.connect_to_miner(self.connected_miner[0], self.connected_miner[1])
-                self.send_message_to_miner(message)
-                self.receive_response()
+                message = input("Montant : ")
+                port_wallet = input("Port du wallet : ")
+                message = f"{self.port}={message}={port_wallet}"
+                t = threading.Thread(target=self.send_message_to_miner, args=(
+                    message, self.connected_miner[0], self.connected_miner[1]))
+                logging.debug(f"Wallet_{self.port}.start : start thread send message")
+                t.start()
+
         except Exception as e:
             logging.debug(e)
             sock.close()
             return
 
-
-    def connect_to_miner(self, miner_address, miner_port):
-        # Connection a un miner
-        logging.debug(f"Attempting connection to Miner {miner_address}:{miner_port}")
-        
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((miner_address, miner_port))
-            logging.debug(f"Successfully connected to {miner_address} : {miner_port}")
-            self.connected_miner = (miner_address, miner_port)
-        except Exception as e:
-            logging.debug(e)
-            self.connected_miner = None
-        
-
-    def send_message_to_miner(self, message):
-        # Envoi de message à un miner
-        if not self.connected_miner:
-            logging.debug("Attempt to send message but no miner is connected")
-            return
-        
-        miner_address, miner_port = self.connected_miner
-        
+    def send_message_to_miner(self, message, adress, port):
+        logging.debug(f"Wallet_{self.port}.send_message_to_miner")
         try:
             message = f"From Wallet:{self.address}:{self.port}:" + message
-            
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # Connection au miner
-            sock.connect((miner_address, miner_port))
-            # Envoi du message
+            sock.connect((adress, port))
             sock.sendall(message.encode('utf-8'))
-            logging.debug(f"Message \"{message}\" sent to miner at {miner_address}:{miner_port}")
+            logging.debug(f"Message \"{message}\" sent to miner at {adress}:{port}")
             sock.close()
-            
         except Exception as e:
             logging.debug(e)
-            
-        
+            return
 
-    def receive_response(self):
-        # Handle responses received from the miner
-        logging.debug(f"Wallet_{self.port} waiting for response...")
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.listen()
-        try:
-            while True:
-                client_socket, client_address = sock.accept()
-                msg = client_socket.recv(1024).decode('utf-8')
-                logging.debug(f"Recieved : {msg}")
-        except Exception as e:
-            logging.debug(e)
-            sock.close()
-
-    # Additional methods as needed for wallet functionality
 
 if __name__ == "__main__":
     # Code to instantiate and use the wallet

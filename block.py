@@ -1,31 +1,54 @@
 import hashlib
 import time
+import threading
+import logging
 
 class Block:
-    def __init__(self, index, transactions, previous_hash):
+    def __init__(self, index=0, previous_hash=None, transactions=None):
+        logging.basicConfig(
+            filename=f'logs/block{index}.log', encoding='utf-8', level=logging.DEBUG, filemode="w")
+        logging.debug(f"block_{index}.__init__")
         self.index = index
-        self.transactions = transactions
+        if transactions is not None:
+            self.transactions = transactions
+        else:
+            self.transactions = []
         self.previous_hash = previous_hash
         self.timestamp = time.time()
         self.nonce = 0
+        self.size = 5
+        self.hash = ""
+    
+    def add_transaction(self, transaction):
+        self.transactions.append(transaction)
+        logging.debug(f"Block_{self.index}.add_transaction : {transaction}")
+        return self.size == len(self.transactions)
 
     def compute_hash(self):
         block_string = f"{self.index}{self.transactions}{self.previous_hash}{self.timestamp}{self.nonce}"
         return hashlib.sha256(block_string.encode()).hexdigest()
 
-# Proof of Work
-# difficulty is the number of leading zeroes that must be in the hash
-def proof_of_work(block, difficulty=4):
-    block.nonce = 0
-    computed_hash = block.compute_hash()
-    while not computed_hash.startswith('0' * difficulty):
-        block.nonce += 1
-        computed_hash = block.compute_hash()
-    return computed_hash
-
-# Example Usage
-transactions = ['Alice sends 1 BTC to Bob', 'Charlie sends 2 BTC to Dave']
-genesis_block = Block(0, transactions, "0")
-print("Mining genesis block...")
-proof_of_work(genesis_block)
-print(f"Genesis Block Hash: {genesis_block.compute_hash()}")
+    # Proof of Work
+    # difficulty is the number of leading zeroes that must be in the hash
+    def mine_block(self, stop_event, difficulty=5):
+        logging.debug(f"Block_{self.index}.mine_block")
+        self.nonce = 0
+        computed_hash = self.compute_hash()
+        while not computed_hash.startswith('0' * difficulty):
+            if stop_event.is_set():
+                logging.debug(f"Block_{self.index}.mine_block stopped")
+                return False
+            self.nonce += 1
+            computed_hash = self.compute_hash()
+        logging.debug(f"Block_{self.index}.mine_block hash found")
+        self.hash = computed_hash
+        return True
+    
+    def get_hash(self):
+        logging.debug(f"Block_{self.index}.get_hash : {self.hash}")
+        return self.hash
+    
+    def set_hash(self, hash):
+        # in case another miner has already mined the block
+        self.hash = hash
+        logging.debug(f"Block_{self.index}.set_hash : {hash}")
