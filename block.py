@@ -5,8 +5,6 @@ import logging
 
 class Block:
     def __init__(self, index=0, previous_hash=None, transactions=None):
-        logging.basicConfig(
-            filename=f'logs/block{index}.log', encoding='utf-8', level=logging.DEBUG, filemode="w")
         logging.debug(f"block_{index}.__init__")
         self.index = index
         if transactions is not None:
@@ -30,7 +28,7 @@ class Block:
 
     # Proof of Work
     # difficulty is the number of leading zeroes that must be in the hash
-    def mine_block(self, stop_event, difficulty=5):
+    def mine_block(self, stop_event, difficulty=6):
         logging.debug(f"Block_{self.index}.mine_block")
         self.nonce = 0
         computed_hash = self.compute_hash()
